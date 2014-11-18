@@ -1,0 +1,22 @@
+{
+  "name": "kii-angular-patch",
+  "version": "0.0.1",
+  "authors": [
+    "kiicorp"
+  ],
+  "description": "This is an angular patch for KiiCloud",
+  "main": "kii-angular-patch.js",
+  "keywords": [
+    "kii",
+    "angular"
+  ],
+  "license": "http://en.kii.com/terms/",
+  "homepage": "http://www.kii.com",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
