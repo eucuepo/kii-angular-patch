@@ -22,8 +22,56 @@
         //-------------------------------------
         // Structured object of what we need to update
         //-------------------------------------
-    
+
         var methodsToUpdate = {
+          "KiiACL":{
+            prototype: [],
+            static: []
+          },
+          "KiiACLEntry":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiAnonymousUser":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiAnyAuthenticatedUser":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiAppAdminContext":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiBucket":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiClause":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiGeoPoint":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiGroup":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiObject":{
+            prototype: ['delete','deleteBody','downloadBody','moveBody','publishBody','publishBodyExpiresAt','refresh','save','saveAllFields','uploadBody'],
+            static: ['']
+          },
+          "KiiQuery":{
+            prototype: [''],
+            static: ['']
+          },
+          "KiiSocialConnect":{
+            prototype: [''],
+            static: ['']
+          },
           "KiiUser": {
             prototype: ['register'],
             static: ['userWithUsername']
