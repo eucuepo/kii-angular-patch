@@ -18,7 +18,9 @@
 
         var Kii = {
           KiiUser: $window.KiiUser
-        } 
+          KiiObject: $window.KiiObject
+        }
+        
         //-------------------------------------
         // Structured object of what we need to update
         //-------------------------------------
