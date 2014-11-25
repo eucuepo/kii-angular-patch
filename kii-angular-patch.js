@@ -13,56 +13,70 @@
       static: []
     },
     "KiiACLEntry":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiAnonymousUser":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiAnyAuthenticatedUser":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiAppAdminContext":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiBucket":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiClause":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiGeoPoint":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiGroup":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiObject":{
-      prototype: ['delete','deleteBody','downloadBody','moveBody','publishBody','publishBodyExpiresAt','refresh','save','saveAllFields','uploadBody'],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiQuery":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiSocialConnect":{
-      prototype: [''],
-      static: ['']
+      prototype: [],
+      static: []
     },
     "KiiUser": {
-      prototype: ['register'],
+      prototype: ['register','update'],
       static: ['userWithUsername']
     }
   }
 
-  function overrideMethods(qlib,Kii) {
+  /**
+  Get parameter names
+  **/
+  var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+  var ARGUMENT_NAMES = /([^\s,]+)/g;
+  function getParamNames(func) {
+    var fnStr = func.toString().replace(STRIP_COMMENTS, '')
+    var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES)
+    if(result === null)
+       result = []
+    return result
+  }
+
+
+  function overrideMethods(qlib,Kii,methodsToUpdate) {
     
     // Let's loop over Kii objects
     for (var k in methodsToUpdate) {
@@ -80,14 +94,36 @@
         var origMethod = Kii[currentClass].prototype[method];
 
         // Overwrite original function by wrapping it with $q
-        Kii[currentClass].prototype[method] = function() {
-           var defer = qlib.defer();
-          origMethod.apply(this, arguments)
-              .then(function(data){
-                  defer.resolve(data);
-              }, function(err){
-                  defer.reject(err);
-              });
+        Kii[currentClass].prototype[method+'Async'] = function() {
+          var defer = qlib.defer();
+          var newArgs = [];
+          var params = getParamNames(origMethod);
+          var argsArray = Array.prototype.slice.call(arguments);
+          // tracks argsArray index
+          var paramIndex = 0;
+          for(var i=0; i<params.length; i++){
+            // Intercept callback parameter and patch it with promises
+            // We are fine as long as the argument is called 'callbacks'
+            if(params[i] == "callbacks"){
+              newArgs[i] = {
+                success: function(data) {
+                    // resolve data
+                    defer.resolve(data);
+                },
+                failure: function(error, errorMessage) {
+                    // return error response
+                    defer.reject(error, errorMessage);
+                }
+              }
+            } else {
+              // no callbacks, put parameter as is
+              newArgs[i] = argsArray[paramIndex];
+              paramIndex++;
+            }
+          }
+          // apply original methods
+          origMethod.apply(this, newArgs)
+
           return defer.promise; 
         };
 
@@ -119,11 +155,26 @@
     if (angular !== undef) {
       var module = angular.module('kii-angular', []);
       module.run(['$q', '$window', function($q, $window) {
-        overrideMethods($q,Kii);
+        var KiiAngular = {
+          KiiACL: window.KiiACL,
+          KiiACLEntry: window.KiiACLEntry,
+          KiiAnonymousUser: window.KiiAnonymousUser,
+          KiiAnyAuthenticatedUser: window.KiiAnyAuthenticatedUser,
+          KiiAppAdminContext: window.KiiAppAdminContext,
+          KiiBucket: window.KiiBucket,
+          KiiClause: window.KiiClause,
+          KiiGeoPoint: window.KiiGeoPoint,
+          KiiGroup: window.KiiGroup,
+          KiiObject: window.KiiObject,
+          KiiQuery: window.KiiQuery,
+          KiiSocialConnect: window.KiiSocialConnect,
+          KiiUser: $window.KiiUser
+        }
+        overrideMethods($q,KiiAngular,methodsToUpdate);
       }]);
     } else if (q !== undef) {
       // Q is present, use Q
-      overrideMethods(q,Kii);
+      overrideMethods(q,Kii,methodsToUpdate);
     }
   }
 })(this);
